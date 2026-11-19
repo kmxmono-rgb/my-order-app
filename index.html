@@ -1,1 +1,62 @@
-<h1>測試成功</h1>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的線上商店</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; background: #f9f9f9; }
+    .card { background: white; padding: 16px; margin-bottom: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .price { color: #e53935; font-weight: bold; font-size: 18px; }
+  </style>
+  <!-- 載入 Supabase 官方連線工具 -->
+  <script src="https://jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h1>🛍️ 商品目錄</h1>
+  <div id="product-list">正在從雲端資料庫載入商品...</div>
+
+  <script>
+    // 1. 設定 Supabase 連線資訊
+    const SUPABASE_URL = 'https://cttkinmidqdtrchapmwr.supabase.co';
+    // 👇 請把引號裡面的文字，替換成你剛剛按 Copy 複製的完整 anon public key
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0dGtpbm1pZHFkdHJjaGFwbXdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUwNTg2MTIsImV4cCI6MjExMDYzNDYxMn0.0WvnBQ0PGgNvEYBIaLrVnmpHw0D8q4NWJB43Jeg3Cgs';
+
+    // 2. 初始化連線
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 3. 抓取商品並顯示在畫面上
+    async function loadProducts() {
+      const { data, error } = await db
+        .from('products')
+        .select('*')
+        .eq('is_active', true);
+
+      const listDiv = document.getElementById('product-list');
+
+      if (error) {
+        listDiv.innerHTML = `<p style="color:red;">讀取失敗：${error.message}</p>`;
+        return;
+      }
+
+      if (data.length === 0) {
+        listDiv.innerHTML = '<p>目前沒有上架商品喔！</p>';
+        return;
+      }
+
+      // 把抓到的商品一筆一筆變成網頁卡片
+      listDiv.innerHTML = data.map(item => `
+        <div class="card">
+          <h3>${item.name}</h3>
+          <p class="price">NT$ ${item.price}</p>
+          <p>剩餘庫存：${item.stock} 件</p>
+        </div>
+      `).join('');
+    }
+
+    // 網頁一打開就執行
+    loadProducts();
+  </script>
+</body>
+</html>
+
